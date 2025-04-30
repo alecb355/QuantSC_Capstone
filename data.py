@@ -30,9 +30,6 @@ def fetch_all_prices(batch_size = 50):
     # create data dir
     os.makedirs("data", exist_ok=True)
     
-    # keep track of missing tickers
-    missing_tickers = []
-    
     # Process stocks in batches to avoid rate limits
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i:i+batch_size]
@@ -48,16 +45,8 @@ def fetch_all_prices(batch_size = 50):
                 stock_data = data[ticker].dropna()  # Remove empty rows
                 if not stock_data.empty:
                     stock_data.to_csv(f"data/{ticker}.csv")
-                else:
-                    missing_tickers.append(ticker)
 
         time.sleep(2)  # Pause to prevent rate limits for yf
-
-    # Log tickers with missing data
-    if missing_tickers:
-        with open("missing_tickers.txt", "w") as f:
-            f.write("\n".join(missing_tickers))
-        print(f"Some tickers had no data. See 'missing_tickers.txt'.")
 
     print("All available S&P 500 stock data saved!")
 

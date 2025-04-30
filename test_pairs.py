@@ -2,7 +2,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import timedelta
 
 BUY_THRESHOLD = 0.05
 SELL_THRESHOLD = -0.05
@@ -33,11 +32,8 @@ first_valid_date = sp_data.index[1]
 # Get the opening price
 opening_price = int(sp_data.loc[first_valid_date, 'Open'])
 
-# Calculate number of shares
+# Calculate number of shares for spy 
 spy_shares = INITIAL_CAPITAL / opening_price
-
-print(f"Bought {spy_shares:.2f} shares at {opening_price:.2f} on {first_valid_date.date()}")
-
 
 
 sp_close = sp_data['Close']
@@ -69,7 +65,6 @@ for i in range(1, len(data.index)):
             continue
 
         lagger_price = open_data.loc[date, lagger]
-        # lagger_price = data.loc[date, lagger]
 
         if buy:
             cash -= lagger_price
@@ -85,10 +80,6 @@ for i in range(1, len(data.index)):
         leader_price_today = data.loc[date, leader]
         leader_price_yesterday = data.loc[prev_date, leader]
         pct_change = (leader_price_today - leader_price_yesterday) / leader_price_yesterday
-
-
-        # print(f"{date.date()} | {leader} change: {pct_change:.3f}")
-        # print(f"prev_price: {leader_price_yesterday}, price today: {leader_price_today}")
 
         if pct_change >= BUY_THRESHOLD:
             buy = True
@@ -110,9 +101,6 @@ for i in range(1, len(data.index)):
     portfolio_value[date] = total_value
     sp_value[date] = sp_close.loc[date] * spy_shares
 
-# Forward fill in case of no trades
-# portfolio_value = portfolio_value.fillna(method="ffill")
-
 # Plot performance
 ax = portfolio_value.plot(title="Strategy Portfolio Value", figsize=(10, 5), label="Lead-Lag Portfolio")
 sp_value.plot(ax=ax, title="Strategy Performance", figsize=(10, 5), label="SPY Portfolio")
@@ -128,18 +116,6 @@ plt.show()
 # Compute running maximum
 running_max = portfolio_value.cummax()
 spy_running_max = sp_value.cummax()
-
-# Compute drawdowns
-drawdowns = (portfolio_value - running_max) / running_max
-
-# Max drawdown
-max_drawdown = drawdowns.min()
-
-spy_drawdown = ((sp_value - spy_running_max) / spy_running_max).min()
-
-print(f"Max Drawdown: {max_drawdown:.2%}")
-print(f"Spy drawdown: {spy_drawdown:.2%}")
-
 
 # Compute Sharpe Ratio
 returns = portfolio_value.pct_change().dropna()
